@@ -1,112 +1,144 @@
+" ============================================================
+"                    Misha's Neovim Config
+" ============================================================
+
+" --- General Settings ---
 set mouse=a
 set number
-set completeopt-=preview
+set relativenumber
+set cursorline
+
 set autoindent
+set smartindent
 set smarttab
-set splitbelow splitright
+
 set tabstop=4
 set shiftwidth=4
 set expandtab
+
+set splitbelow
+set splitright
+
+set completeopt-=preview
 set shortmess+=c
-set shell=powershell
+
+set termguicolors
+set background=dark
+
 set guifont=FiraCode\ Nerd\ Font:h12
 
-" Set leader key to Space
+" Use Bash inside Arch WSL
+set shell=bash
+
+" Leader key = Space
 let mapleader = "\<Space>"
+
+
+" ============================================================
+"                         PLUGINS
+" ============================================================
 
 call plug#begin("~/.config/nvim/plugged")
 
 " --- Themes & UI ---
-Plug 'https://github.com/Mofiqul/dracula.nvim'
-Plug 'https://github.com/morhetz/gruvbox'
-Plug 'https://github.com/maxmx03/fluoromachine.nvim'
-Plug 'https://github.com/vim-airline/vim-airline'
-Plug 'https://github.com/ap/vim-css-color'
-Plug 'https://github.com/ryanoasis/vim-devicons'
-Plug 'https://github.com/navarasu/onedark.nvim'
-Plug 'https://github.com/folke/tokyonight.nvim'
+Plug 'Mofiqul/dracula.nvim'
+Plug 'morhetz/gruvbox'
+Plug 'maxmx03/fluoromachine.nvim'
+Plug 'vim-airline/vim-airline'
+Plug 'ap/vim-css-color'
+Plug 'ryanoasis/vim-devicons'
+Plug 'navarasu/onedark.nvim'
+Plug 'folke/tokyonight.nvim'
 Plug 'jaredgorski/spacecamp'
 Plug 'lunarvim/synthwave84.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
-Plug 'https://github.com/romgrk/barbar.nvim'
+Plug 'romgrk/barbar.nvim'
 
 " --- Tools ---
-Plug 'https://github.com/preservim/nerdtree'
-Plug 'https://github.com/preservim/tagbar'
-Plug 'https://github.com/tc50cal/vim-terminal'
-Plug 'https://github.com/jiangmiao/auto-pairs'
-Plug 'https://github.com/neoclide/coc.nvim', {'branch': 'release'}
+Plug 'preservim/nerdtree'
+Plug 'preservim/tagbar'
+Plug 'tc50cal/vim-terminal'
+Plug 'jiangmiao/auto-pairs'
+
+" --- IntelliSense ---
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 call plug#end()
 
-" --- General Key Bindings ---
-nnoremap <C-u> :TagbarToggle<CR>
-nnoremap <C-t> :NERDTreeToggle<CR>
-nnoremap <C-y> :botright split<CR>
-nnoremap <C-s> :w<CR>
-nnoremap <C-q> :q<CR>
-nnoremap <C-f> :wq<CR>
-nnoremap <C-d> dd<CR>
-nnoremap <C-z> u<CR>
 
-" --- Coc.nvim Autocompletion ---
+" ============================================================
+"                    GENERAL KEYBINDINGS
+" ============================================================
+
+" Tagbar
+nnoremap <C-u> :TagbarToggle<CR>
+
+" NERDTree
+nnoremap <C-t> :NERDTreeToggle<CR>
+
+" Horizontal split
+nnoremap <C-y> :botright split<CR>
+
+" Save
+nnoremap <C-s> :w<CR>
+
+" Quit
+nnoremap <C-q> :q<CR>
+
+" Save + quit
+nnoremap <C-f> :wq<CR>
+
+" Delete current line
+nnoremap <C-d> dd
+
+" Undo
+nnoremap <C-z> u
+
+
+" ============================================================
+"                    COC.NVIM AUTOCOMPLETE
+" ============================================================
+
+" TAB:
+" If completion menu is visible -> confirm selection
+" Otherwise -> normal Tab / trigger completion
 inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ coc#pum#visible() ? coc#pum#confirm() :
       \ CheckBackspace() ? "\<Tab>" :
       \ coc#refresh()
-inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
-inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
 
+" SHIFT + TAB:
+" Go to previous completion
+inoremap <silent><expr> <S-TAB>
+      \ coc#pum#visible() ? coc#pum#prev(1) :
+      \ "\<C-h>"
+
+" ENTER:
+" Always behave like normal Enter
+inoremap <silent><expr> <CR> "\<CR>"
+
+
+" Check whether cursor is after whitespace
 function! CheckBackspace() abort
   let col = col('.') - 1
-  return !col || getline('.')[col - 1]  =~# '\s'
+  return !col || getline('.')[col - 1] =~# '\s'
 endfunction
 
-" --- UI Settings ---
-set termguicolors
-colorscheme synthwave84
-highlight Normal guibg=black
 
-" --- Terminal Toggle Function ---
-let g:toggle_term_buf = -1
+" ============================================================
+"                    COC.NVIM KEYBINDINGS
+" ============================================================
 
-function! ToggleTerminal()
-  if bufexists(g:toggle_term_buf)
-    let l:term_win = bufwinnr(g:toggle_term_buf)
-    if l:term_win != -1
-      execute l:term_win . 'wincmd q'
-    else
-      execute 'rightbelow 15split'
-      execute 'buffer ' . g:toggle_term_buf
-      startinsert
-    endif
-  else
-    execute 'rightbelow 15split'
-    term
-    let g:toggle_term_buf = bufnr('%')
-    startinsert
-  endif
-endfunction
+" Code Action
+nmap <leader>ca <Plug>(coc-codeaction-cursor)
 
-nnoremap <C-r> :call ToggleTerminal()<CR>
-tnoremap <C-r> <C-\><C-n>:call ToggleTerminal()<CR>
-autocmd BufEnter term://* startinsert
+" Go to definition
+nmap <silent> gd <Plug>(coc-definition)
 
-set background=dark
+" Rename symbol
+nmap <leader>rn <Plug>(coc-rename)
 
-" --- Python Settings ---
-augroup exe_code
-    autocmd!
-    autocmd FileType python nnoremap  <buffer> <localleader> r
-                           \ :sp<CR> :term python3 %<CR> :startinsert<CR>
-augroup END
-
-" --- Coc.nvim Intellisense Keymaps (General) ---
-
-" 'Code Action' (Wrap, Extract, etc.)
-nmap <leader>ca  <Plug>(coc-codeaction-cursor)
-
-" Show Documentation on Hover (Shift+K)
+" Show documentation
 nnoremap <silent> K :call ShowDocumentation()<CR>
 
 function! ShowDocumentation()
@@ -117,8 +149,117 @@ function! ShowDocumentation()
   endif
 endfunction
 
-" Jump to Definition
-nmap <silent> gd <Plug>(coc-definition)
 
-" Rename Symbol
-nmap <leader>rn <Plug>(coc-rename)
+" ============================================================
+"                         UI
+" ============================================================
+
+colorscheme synthwave84
+
+highlight Normal guibg=black
+
+
+" ============================================================
+"                    TERMINAL TOGGLE
+" ============================================================
+
+let g:toggle_term_buf = -1
+
+function! ToggleTerminal()
+
+  if bufexists(g:toggle_term_buf)
+
+    let l:term_win = bufwinnr(g:toggle_term_buf)
+
+    if l:term_win != -1
+
+      execute l:term_win . 'wincmd q'
+
+    else
+
+      execute 'rightbelow 15split'
+      execute 'buffer ' . g:toggle_term_buf
+      startinsert
+
+    endif
+
+  else
+
+    execute 'rightbelow 15split'
+    term
+
+    let g:toggle_term_buf = bufnr('%')
+
+    startinsert
+
+  endif
+
+endfunction
+
+
+" Toggle terminal
+nnoremap <C-r> :call ToggleTerminal()<CR>
+
+" Toggle terminal from terminal mode
+tnoremap <C-r> <C-\><C-n>:call ToggleTerminal()<CR>
+
+" Automatically enter insert mode in terminal
+autocmd BufEnter term://* startinsert
+
+
+" ============================================================
+"                         PYTHON
+" ============================================================
+
+augroup exe_code
+    autocmd!
+
+    autocmd FileType python nnoremap <buffer> <localleader>r
+          \ :sp<CR>
+          \ :term python3 %<CR>
+          \ :startinsert<CR>
+
+augroup END
+
+
+" ============================================================
+"                    BASH COMPLETION
+" ============================================================
+
+" Load bash completion if available
+if filereadable('/usr/share/bash-completion/bash_completion')
+    autocmd VimEnter * silent! execute '!true'
+endif
+
+
+" ============================================================
+"                    EXTRA NEOVIM SETTINGS
+" ============================================================
+
+" Keep sign column visible
+set signcolumn=yes
+
+" Better search
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+
+" Don't wrap long lines
+set nowrap
+
+" Faster update time for plugins
+set updatetime=300
+
+" Persistent undo
+set undofile
+
+" Remember cursor position
+autocmd BufReadPost *
+      \ if line("'\"") > 0 && line("'\"") <= line("$") |
+      \   execute "normal! g`\"" |
+      \ endif
+
+" ============================================================
+"                         END
+" ============================================================
