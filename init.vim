@@ -2,7 +2,8 @@
 "                    Misha's Neovim Config
 " ============================================================
 
-" --- General Settings ---
+" -------------------- General Settings ---------------------
+
 set mouse=a
 set number
 set relativenumber
@@ -24,13 +25,22 @@ set shortmess+=c
 
 set termguicolors
 set background=dark
+set nowrap
+
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+
+set signcolumn=yes
+set updatetime=300
 
 set guifont=FiraCode\ Nerd\ Font:h12
 
-" Use Bash inside Arch WSL
+" Arch WSL = Bash
 set shell=bash
 
-" Leader key = Space
+" Leader = Space
 let mapleader = "\<Space>"
 
 
@@ -40,7 +50,8 @@ let mapleader = "\<Space>"
 
 call plug#begin("~/.config/nvim/plugged")
 
-" --- Themes & UI ---
+" -------------------- Themes & UI ----------------------------
+
 Plug 'Mofiqul/dracula.nvim'
 Plug 'morhetz/gruvbox'
 Plug 'maxmx03/fluoromachine.nvim'
@@ -54,13 +65,15 @@ Plug 'lunarvim/synthwave84.nvim'
 Plug 'nvim-tree/nvim-web-devicons'
 Plug 'romgrk/barbar.nvim'
 
-" --- Tools ---
+" -------------------- Tools ---------------------------------
+
 Plug 'preservim/nerdtree'
 Plug 'preservim/tagbar'
 Plug 'tc50cal/vim-terminal'
 Plug 'jiangmiao/auto-pairs'
 
-" --- IntelliSense ---
+" -------------------- IntelliSense ---------------------------
+
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 call plug#end()
@@ -76,7 +89,7 @@ nnoremap <C-u> :TagbarToggle<CR>
 " NERDTree
 nnoremap <C-t> :NERDTreeToggle<CR>
 
-" Horizontal split
+" Horizontal terminal/split
 nnoremap <C-y> :botright split<CR>
 
 " Save
@@ -85,10 +98,10 @@ nnoremap <C-s> :w<CR>
 " Quit
 nnoremap <C-q> :q<CR>
 
-" Save + quit
+" Save + Quit
 nnoremap <C-f> :wq<CR>
 
-" Delete current line
+" Delete line
 nnoremap <C-d> dd
 
 " Undo
@@ -96,62 +109,80 @@ nnoremap <C-z> u
 
 
 " ============================================================
-"                    COC.NVIM AUTOCOMPLETE
+"                    COC INTELLISENSE
 " ============================================================
 
-" TAB:
-" If completion menu is visible -> confirm selection
-" Otherwise -> normal Tab / trigger completion
-inoremap <silent><expr> <TAB>
-      \ coc#pum#visible() ? coc#pum#confirm() :
-      \ CheckBackspace() ? "\<Tab>" :
-      \ coc#refresh()
+" ------------------------------------------------------------
+" TAB = ACCEPT COMPLETION
+" ------------------------------------------------------------
 
-" SHIFT + TAB:
-" Go to previous completion
-inoremap <silent><expr> <S-TAB>
-      \ coc#pum#visible() ? coc#pum#prev(1) :
-      \ "\<C-h>"
+inoremap <silent><expr> <Tab>
+      \ coc#pum#visible()
+      \ ? coc#pum#confirm()
+      \ : "\<Tab>"
 
-" ENTER:
-" Always behave like normal Enter
+
+" ------------------------------------------------------------
+" SHIFT + TAB = PREVIOUS COMPLETION
+" ------------------------------------------------------------
+
+inoremap <silent><expr> <S-Tab>
+      \ coc#pum#visible()
+      \ ? coc#pum#prev(1)
+      \ : "\<C-h>"
+
+
+" ------------------------------------------------------------
+" ENTER = NORMAL ENTER
+" ------------------------------------------------------------
+
 inoremap <silent><expr> <CR> "\<CR>"
 
 
-" Check whether cursor is after whitespace
+" ------------------------------------------------------------
+" CTRL + SPACE = MANUALLY TRIGGER COMPLETION
+" ------------------------------------------------------------
+
+inoremap <silent><expr> <C-Space> coc#refresh()
+
+
+" ------------------------------------------------------------
+" BACKSPACE CHECK
+" ------------------------------------------------------------
+
 function! CheckBackspace() abort
-  let col = col('.') - 1
-  return !col || getline('.')[col - 1] =~# '\s'
+    let col = col('.') - 1
+    return !col || getline('.')[col - 1] =~# '\s'
 endfunction
 
 
 " ============================================================
-"                    COC.NVIM KEYBINDINGS
+"                    COC KEYBINDINGS
 " ============================================================
 
 " Code Action
 nmap <leader>ca <Plug>(coc-codeaction-cursor)
 
-" Go to definition
+" Go to Definition
 nmap <silent> gd <Plug>(coc-definition)
 
-" Rename symbol
+" Rename Symbol
 nmap <leader>rn <Plug>(coc-rename)
 
-" Show documentation
+" Documentation
 nnoremap <silent> K :call ShowDocumentation()<CR>
 
 function! ShowDocumentation()
-  if CocAction('hasProvider', 'hover')
-    call CocActionAsync('doHover')
-  else
-    call feedkeys('K', 'in')
-  endif
+    if CocAction('hasProvider', 'hover')
+        call CocActionAsync('doHover')
+    else
+        call feedkeys('K', 'in')
+    endif
 endfunction
 
 
 " ============================================================
-"                         UI
+"                         THEME
 " ============================================================
 
 colorscheme synthwave84
@@ -160,39 +191,39 @@ highlight Normal guibg=black
 
 
 " ============================================================
-"                    TERMINAL TOGGLE
+"                       TERMINAL
 " ============================================================
 
 let g:toggle_term_buf = -1
 
 function! ToggleTerminal()
 
-  if bufexists(g:toggle_term_buf)
+    if bufexists(g:toggle_term_buf)
 
-    let l:term_win = bufwinnr(g:toggle_term_buf)
+        let l:term_win = bufwinnr(g:toggle_term_buf)
 
-    if l:term_win != -1
+        if l:term_win != -1
 
-      execute l:term_win . 'wincmd q'
+            execute l:term_win . 'wincmd q'
+
+        else
+
+            execute 'rightbelow 15split'
+            execute 'buffer ' . g:toggle_term_buf
+            startinsert
+
+        endif
 
     else
 
-      execute 'rightbelow 15split'
-      execute 'buffer ' . g:toggle_term_buf
-      startinsert
+        execute 'rightbelow 15split'
+        term
+
+        let g:toggle_term_buf = bufnr('%')
+
+        startinsert
 
     endif
-
-  else
-
-    execute 'rightbelow 15split'
-    term
-
-    let g:toggle_term_buf = bufnr('%')
-
-    startinsert
-
-  endif
 
 endfunction
 
@@ -212,6 +243,7 @@ autocmd BufEnter term://* startinsert
 " ============================================================
 
 augroup exe_code
+
     autocmd!
 
     autocmd FileType python nnoremap <buffer> <localleader>r
@@ -223,43 +255,22 @@ augroup END
 
 
 " ============================================================
-"                    BASH COMPLETION
+"                      PERSISTENT UNDO
 " ============================================================
 
-" Load bash completion if available
-if filereadable('/usr/share/bash-completion/bash_completion')
-    autocmd VimEnter * silent! execute '!true'
-endif
-
-
-" ============================================================
-"                    EXTRA NEOVIM SETTINGS
-" ============================================================
-
-" Keep sign column visible
-set signcolumn=yes
-
-" Better search
-set ignorecase
-set smartcase
-set incsearch
-set hlsearch
-
-" Don't wrap long lines
-set nowrap
-
-" Faster update time for plugins
-set updatetime=300
-
-" Persistent undo
 set undofile
 
-" Remember cursor position
+
+" ============================================================
+"                   REMEMBER CURSOR POSITION
+" ============================================================
+
 autocmd BufReadPost *
       \ if line("'\"") > 0 && line("'\"") <= line("$") |
       \   execute "normal! g`\"" |
       \ endif
 
+
 " ============================================================
-"                         END
+"                         END CONFIG
 " ============================================================
